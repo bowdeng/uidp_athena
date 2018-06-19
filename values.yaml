@@ -1,3 +1,7 @@
 volumes:
   create: false
   size: 50Gi
+  path: /mnt/trainingdata
+  createclass: false
+gpu:
+  count: 0

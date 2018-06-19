@@ -15,33 +15,39 @@ data:
 ---
 # VOLUME CREATE
 ---
-{{ if .Values.volumes.create }}
+{{ if .Values.volumes.create -}}
+{{ if .Values.volumes.createclass -}}
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+{{ end -}}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: pv-athena-training-data-{{ .Release.Name }}
-  annotations:
-    "volume.alpha.kubernetes.io/node-affinity": '{
-      "requiredDuringSchedulingIgnoredDuringExecution": {
-        "nodeSelectorTerms": [
-          { "matchExpressions": [
-            { "key": "role",
-              "operator": "In",
-              "values": ["mltraining"]
-            }
-          ]}
-         ]}
-        }'
 spec:
   capacity:
     storage: {{ .Values.volumes.size }}
+  volumeMode: Filesystem
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-storage
   local:
-    path: {{ .Values.volumes.path }} 
-{{ end }} 
+    path: {{ .Values.volumes.path }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: role
+          operator: In
+          values:
+          - mltraining
+{{ end -}} 
 ---
 # VOLUME CLAIM
 ---
@@ -111,14 +117,20 @@ spec:
         command: ["jupyter"]
         args: ["notebook"]
         imagePullPolicy: Always
+        {{ if gt .Values.gpu.count 0.0 -}}
+        resources:
+          limits:
+            nvidia.com/gpu: !!int {{ .Values.gpu.count }}
+        {{ end -}}
         ports:
         - containerPort: 6006
         - containerPort: 8888
         volumeMounts:
         - mountPath: /notebooks
-      volumes:
+          name: pv-athena-training-data-{{ .Release.Name }} 
+      volumes: 
       - name: pv-athena-training-data-{{ .Release.Name }}
         persistentVolumeClaim:
-              claimName: pvc-athena-training-data-{{ .Release.Name }}
+          claimName: pvc-athena-training-data-{{ .Release.Name }}
       nodeSelector:
         role: mltraining
