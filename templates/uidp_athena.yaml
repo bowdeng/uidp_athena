@@ -115,7 +115,7 @@ spec:
       - name: tensorflow-train-{{ .Release.Name }}
         image: tensorflow/tensorflow:latest-gpu
         command: ["jupyter"]
-        args: ["notebook"]
+        args: ["notebook", "--allow-root"]
         imagePullPolicy: Always
         {{ if gt .Values.gpu.count 0.0 -}}
         resources:
