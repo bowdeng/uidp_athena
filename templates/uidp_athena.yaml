@@ -13,6 +13,50 @@ type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: "eyJhdXRocyI6eyJ1aWRwcmVnLmF6dXJlY3IuaW8iOnsidXNlcm5hbWUiOiJ1aWRwcmVnIiwicGFzc3dvcmQiOiJLaGZEdD1FPUcwOStQWGtoSW9CV2xXWkQ1MlBLR2VUcCIsImVtYWlsIjoiZ2x5bi5ib3dkZW5AaHBlLmNvbSIsImF1dGgiOiJkV2xrY0hKbFp6cExhR1pFZEQxRlBVY3dPU3RRV0d0b1NXOUNWMnhYV2tRMU1sQkxSMlZVY0E9PSJ9fX0="
 ---
+# VOLUME CREATE
+---
+{{ if .Values.volumes.create }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-athena-training-data-{{ .Release.Name }}
+  annotations:
+    "volume.alpha.kubernetes.io/node-affinity": '{
+      "requiredDuringSchedulingIgnoredDuringExecution": {
+        "nodeSelectorTerms": [
+          { "matchExpressions": [
+            { "key": "role",
+              "operator": "In",
+              "values": ["mltraining"]
+            }
+          ]}
+         ]}
+        }'
+spec:
+  capacity:
+    storage: {{ .Values.volumes.size }}
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: {{ .Values.volumes.path }} 
+{{ end }} 
+---
+# VOLUME CLAIM
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-athena-training-data-{{ .Release.Name }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.volumes.size }}
+  storageClassName: local-storage
+---
 # SERVICES
 ---
 # tensorflow-train Service
@@ -63,25 +107,18 @@ spec:
     spec:
       containers:
       - name: tensorflow-train-{{ .Release.Name }}
-        image: uidpreg.azurecr.io/tensorflow:v1
+        image: tensorflow/tensorflow:latest-gpu
+        command: ["jupyter"]
+        args: ["notebook"]
         imagePullPolicy: Always
         ports:
         - containerPort: 6006
         - containerPort: 8888
-      imagePullSecrets:
-      - name: regcred-{{ .Release.Name }}
+        volumeMounts:
+        - mountPath: /notebooks
+      volumes:
+      - name: pv-athena-training-data-{{ .Release.Name }}
+        persistentVolumeClaim:
+              claimName: pvc-athena-training-data-{{ .Release.Name }}
       nodeSelector:
         role: mltraining
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                - key: component
-                  operator: In
-                  values:
-                  - tensorflow-train-{{ .Release.Name }}
-                - key: app
-                  operator: In
-                  values:
-                  - athena-{{ .Release.Name }}

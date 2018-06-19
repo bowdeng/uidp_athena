@@ -1,1 +1,3 @@
-
+volumes:
+  create: false
+  size: 50Gi
