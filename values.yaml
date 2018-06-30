@@ -1,5 +1,5 @@
 volumes:
-  create: false
+  create: true
   size: 50Gi
   path: /mnt/trainingdata
   createclass: false
