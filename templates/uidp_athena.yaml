@@ -83,9 +83,9 @@ spec:
     targetPort: 8888
     name: ipython-{{ .Release.Name }}
   selector:
-    app: athena
+    app: athena-{{ .Release.Name }}
     component: tensorflow-train-{{ .Release.Name }}
-  type: LoadBalancer
+  type: {{ .Values.portType }}
 ---
 # DEPLOYMENTS
 ---

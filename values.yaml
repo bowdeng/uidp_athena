@@ -5,3 +5,4 @@ volumes:
   createclass: false
 gpu:
   count: 0
+portType: NodePort
