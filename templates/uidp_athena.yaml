@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
       - name: tensorflow-train-{{ .Release.Name }}
-        image: tensorflow/tensorflow:latest-gpu
+        image: tensorflow/tensorflow:latest{{ if gt .Values.gpu.count 0.0 }}-gpu{{ end }}
         command: ["jupyter"]
         args: ["notebook", "--allow-root"]
         env:
