@@ -81,7 +81,7 @@ spec:
     name: tensorboard-{{ .Release.Name }}
   - port: 8888
     targetPort: 8888
-    name: ipython-{{ .Release.Name }}
+    name: jupyter-{{ .Release.Name }}
   selector:
     app: athena-{{ .Release.Name }}
     component: tensorflow-train-{{ .Release.Name }}
