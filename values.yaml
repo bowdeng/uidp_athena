@@ -6,3 +6,4 @@ volumes:
 gpu:
   count: 0
 portType: NodePort
+jupyterPassword: letmein123!

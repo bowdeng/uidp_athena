@@ -116,6 +116,9 @@ spec:
         image: tensorflow/tensorflow:latest-gpu
         command: ["jupyter"]
         args: ["notebook", "--allow-root"]
+        env:
+        - name: PASSWORD
+          value: {{ .Values.jupyterPassword }}
         imagePullPolicy: Always
         {{ if gt .Values.gpu.count 0.0 -}}
         resources:
