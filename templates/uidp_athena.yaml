@@ -132,4 +132,4 @@ spec:
         persistentVolumeClaim:
           claimName: pvc-athena-training-data-{{ .Release.Name }}
       nodeSelector:
-        role: mltraining
+        oneai.role: mltraining
