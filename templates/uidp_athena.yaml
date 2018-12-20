@@ -43,7 +43,7 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions:
-        - key: role
+        - key: oneai.role
           operator: In
           values:
           - mltraining
