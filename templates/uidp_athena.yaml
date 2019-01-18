@@ -13,58 +13,42 @@ type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: "eyJhdXRocyI6eyJ1aWRwcmVnLmF6dXJlY3IuaW8iOnsidXNlcm5hbWUiOiJ1aWRwcmVnIiwicGFzc3dvcmQiOiJLaGZEdD1FPUcwOStQWGtoSW9CV2xXWkQ1MlBLR2VUcCIsImVtYWlsIjoiZ2x5bi5ib3dkZW5AaHBlLmNvbSIsImF1dGgiOiJkV2xrY0hKbFp6cExhR1pFZEQxRlBVY3dPU3RRV0d0b1NXOUNWMnhYV2tRMU1sQkxSMlZVY0E9PSJ9fX0="
 ---
-# VOLUME CREATE
----
 {{ if .Values.volumes.create -}}
-{{ if .Values.volumes.createclass -}}
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: local-storage
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
----
-{{ end -}}
-apiVersion: v1
 kind: PersistentVolume
+apiVersion: v1
 metadata:
   name: pv-athena-training-data-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: local
+    app: oneai
 spec:
+  storageClassName: {{ .Values.volumes.storageClass }}
   capacity:
     storage: {{ .Values.volumes.size }}
-  volumeMode: Filesystem
   accessModes:
-  - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: local-storage
-  local:
-    path: {{ .Values.volumes.path }}
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: role
-          operator: In
-          values:
-          - mltraining
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/data
+---
 {{ end -}} 
----
-# VOLUME CLAIM
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: pvc-athena-training-data-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: oneai
 spec:
+  storageClassName: default-storage
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.volumes.size }}
-  storageClassName: local-storage
+  volumeName: pv-athena-training-data-{{ .Release.Name }}
 ---
 # SERVICES
----
 # tensorflow-train Service
 apiVersion: v1
 kind: Service
