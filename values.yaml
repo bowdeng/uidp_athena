@@ -5,5 +5,5 @@ volumes:
   storageClass: default-storage
 gpu:
   count: 0
-portType: NodePort
+portType: LoadBalancer
 jupyterPassword: letmein123!
