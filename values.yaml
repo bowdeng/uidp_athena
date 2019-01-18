@@ -2,7 +2,7 @@ volumes:
   create: true
   size: 50Gi
   path: /mnt/trainingdata
-  storageClass: false
+  storageClass: default-storage
 gpu:
   count: 0
 portType: NodePort
