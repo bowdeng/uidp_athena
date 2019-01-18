@@ -43,7 +43,7 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions:
-        - key: oneai.role
+        - key: role
           operator: In
           values:
           - mltraining
@@ -87,7 +87,7 @@ spec:
 # DEPLOYMENTS
 ---
 # tensorflow-train Deployment
-apiVersion: apps/v1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: tensorflow-train-{{ .Release.Name }}
@@ -101,6 +101,17 @@ spec:
     matchLabels:
       app: athena-{{ .Release.Name }}
       component: tensorflow-train-{{ .Release.Name }}
+{{- if .Values.nodeLabels }}
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoreDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: hpe.oneai/tag
+              operator: In
+              values:
+                {{ .Values.nodeLabels}}
+{{- end }}
   template:
     metadata:
       name: tensorflow-train-{{ .Release.Name }}
@@ -131,5 +142,3 @@ spec:
       - name: pv-athena-training-data-{{ .Release.Name }}
         persistentVolumeClaim:
           claimName: pvc-athena-training-data-{{ .Release.Name }}
-      nodeSelector:
-        oneai.role: mltraining
