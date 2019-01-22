@@ -1,8 +1,8 @@
-volumes:
-  create: true
-  size: 50Gi
-  path: /mnt/trainingdata
-  createclass: false
+nfs:
+  host: ""
+  path: ""
+labels:
+  role: mltraining
 gpu:
   count: 0
 portType: NodePort
