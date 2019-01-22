@@ -77,7 +77,7 @@ spec:
         ports:
         - containerPort: 8888
         volumeMounts:
-        - mountPath: /notebooks
+        - mountPath: {{ .Values.nfs.mountTo }}
           name: pv-athena-training-data-{{ .Release.Name }} 
       volumes: 
       - name: pv-athena-training-data-{{ .Release.Name }}

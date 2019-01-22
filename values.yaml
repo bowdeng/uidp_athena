@@ -1,8 +1,9 @@
 nfs:
   host: ""
   path: ""
+  mountTo: ""
 labels:
-  role: mltraining
+  role: ""
 gpu:
   count: 0
 portType: NodePort
