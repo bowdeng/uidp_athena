@@ -1,9 +1,10 @@
-volumes:
-  create: true
-  size: 50Gi
-  path: /mnt/trainingdata
-  storageClass: default-storage
+nfs:
+  host: ""
+  path: ""
+  mountTo: ""
+labels:
+  role: ""
 gpu:
   count: 0
-portType: LoadBalancer
+portType: NodePort
 jupyterPassword: letmein123!

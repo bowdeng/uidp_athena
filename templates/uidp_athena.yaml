@@ -1,5 +1,5 @@
 # SECRETS / CONFIGMAPS
----
+
 # Docker Registry Credentials
 apiVersion: v1
 kind: Secret
@@ -12,44 +12,11 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: "eyJhdXRocyI6eyJ1aWRwcmVnLmF6dXJlY3IuaW8iOnsidXNlcm5hbWUiOiJ1aWRwcmVnIiwicGFzc3dvcmQiOiJLaGZEdD1FPUcwOStQWGtoSW9CV2xXWkQ1MlBLR2VUcCIsImVtYWlsIjoiZ2x5bi5ib3dkZW5AaHBlLmNvbSIsImF1dGgiOiJkV2xrY0hKbFp6cExhR1pFZEQxRlBVY3dPU3RRV0d0b1NXOUNWMnhYV2tRMU1sQkxSMlZVY0E9PSJ9fX0="
----
-{{ if .Values.volumes.create -}}
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: pv-athena-training-data-{{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    type: local
-    app: oneai
-spec:
-  storageClassName: {{ .Values.volumes.storageClass }}
-  capacity:
-    storage: {{ .Values.volumes.size }}
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: /mnt/data
----
-{{ end -}} 
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: pvc-athena-training-data-{{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app: oneai
-spec:
-  storageClassName: default-storage
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: {{ .Values.volumes.size }}
-  volumeName: pv-athena-training-data-{{ .Release.Name }}
----
+
 # SERVICES
+
 # tensorflow-train Service
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -67,11 +34,12 @@ spec:
     app: athena-{{ .Release.Name }}
     component: tensorflow-train-{{ .Release.Name }}
   type: {{ .Values.portType }}
----
+
 # DEPLOYMENTS
----
+
 # tensorflow-train Deployment
-apiVersion: apps/v1beta2
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tensorflow-train-{{ .Release.Name }}
@@ -85,17 +53,6 @@ spec:
     matchLabels:
       app: athena-{{ .Release.Name }}
       component: tensorflow-train-{{ .Release.Name }}
-{{- if .Values.nodeLabels }}
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoreDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-            - key: hpe.oneai/tag
-              operator: In
-              values:
-                {{ .Values.nodeLabels}}
-{{- end }}
   template:
     metadata:
       name: tensorflow-train-{{ .Release.Name }}
@@ -120,9 +77,12 @@ spec:
         ports:
         - containerPort: 8888
         volumeMounts:
-        - mountPath: /notebooks
+        - mountPath: {{ .Values.nfs.mountTo }}
           name: pv-athena-training-data-{{ .Release.Name }} 
       volumes: 
       - name: pv-athena-training-data-{{ .Release.Name }}
-        persistentVolumeClaim:
-          claimName: pvc-athena-training-data-{{ .Release.Name }}
+        nfs:
+          server: {{ .Values.nfs.host }}
+          path: {{ .Values.nfs.path }}
+      nodeSelector:
+        oneai.role: {{ .Values.labels.role }}
